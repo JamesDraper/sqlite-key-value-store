@@ -1,4 +1,8 @@
 {
+    "name": "james-draper/sqlite-key-value-store",
+    "desription": "A simple key-value store powered by sqlite",
+    "type": "library",
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "SqliteKeyValueStore\\": "src"
