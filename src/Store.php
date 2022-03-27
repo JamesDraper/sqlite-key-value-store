@@ -9,6 +9,13 @@ use PDO;
 
 use LogicException;
 
+/**
+ * Sqlite key-value store
+ *
+ * A simple key-value storage system powered by sqlite. In-memory sqlite
+ * databases are strictly forbidden. If the file does not exist then it is
+ * created when the object is constructed.
+ */
 final class Store
 {
     private const SQL_GET_KEY = 'SELECT value FROM store WHERE key=:key';
@@ -53,6 +60,15 @@ final class Store
         ]);
     }
 
+    /**
+     * Gets a key from the store, if the key does not exist
+     *     then default is returned instead.
+     *
+     * @param string $key the key to get.
+     * @param mixed $default the value to return if the key is not set.
+     * @return mixed the value of the default.
+     * @throws Exception if there was a problem while getting the key.
+     */
     public function get(string $key, mixed $default = null): mixed
     {
         try {
@@ -66,6 +82,14 @@ final class Store
         return $results ? $results[0]['value'] : $default;
     }
 
+    /**
+     * Writes a key to the store. If the key does not exist then it is created.
+     *
+     * @param string $key the key to set.
+     * @param mixed $value the value to set.
+     * @return self for method chaining.
+     * @throws Exception if there was a problem while setting the key.
+     */
     public function set(string $key, mixed $value): self
     {
         try {
@@ -87,7 +111,7 @@ final class Store
      * Removes a key from the store. If the key does not exist then nothing happens.
      *
      * @param string $key the key to delete.
-     * @return self
+     * @return self for method chaining.
      * @throws Exception if there was a problem while deleting the key.
      */
     public function remove(string $key): self
@@ -108,6 +132,7 @@ final class Store
      * @param string $sql The SQL statement including any parameter placeholders.
      * @param array $params A key-value array mapping parameter placeholders
      *     in the SQL statement to values.
+     * @return PDOStatement the bound and executed statement.
      * @throws PDOException If the statement could not be executed
      *     or the database could not be initialized.
      */
@@ -156,7 +181,7 @@ final class Store
      * @param string $sql The SQL statement including any parameter placeholders.
      * @param array $params A key-value array mapping parameter placeholders
      *     in the SQL statement to values.
-     * @return PDOStatement
+     * @return PDOStatement the bound and executed statement.
      * @throws PDOException If the statement could not be prepared, executed,
      *     or if a parameter could not be bound to it.
      */
