@@ -94,7 +94,10 @@ class Store
      * Executes an SQL statement. If the database is not initialized
      *     it will try to create it and re-run the statement.
      *
-     * @return PDOStatement If the statement could not be executed
+     * @param string $sql The SQL statement including any parameter placeholders.
+     * @param array $params A key-value array mapping parameter placeholders
+     *     in the SQL statement to values.
+     * @throws PDOException If the statement could not be executed
      *     or the database could not be initialized.
      */
     private function execute(string $sql, array $params): PDOStatement
@@ -113,8 +116,9 @@ class Store
     }
 
     /**
-     * Returns true if the store table exists. Otherwise returns false.
+     * Determines if the store table exists in the sqlite file or not.
      *
+     * @return bool true if the store table exists, otherwise false.
      * @throws PDOException if the SQL to read the database could not be run.
      */
     private function tableExists(): bool
@@ -125,7 +129,7 @@ class Store
     }
 
     /**
-     * Creates the key-value table, initializing the database.
+     * Creates the key-value store table in the sqlite file.
      *
      * @throws PDOException if the store table could not be created.
      */
@@ -136,10 +140,14 @@ class Store
 
     /**
      * Prepares an SQL statement, binds the parameters to it,
-     *     executes it, and returns it.
+     *     executes it, and returns the PDOStatement object.
      *
-     * @return PDOStatement If the statement could not be prepared,
-     *     executed, or if a parameter could not be bound to it.
+     * @param string $sql The SQL statement including any parameter placeholders.
+     * @param array $params A key-value array mapping parameter placeholders
+     *     in the SQL statement to values.
+     * @return PDOStatement
+     * @throws PDOException If the statement could not be prepared, executed,
+     *     or if a parameter could not be bound to it.
      */
     private function bindAndExecuteStatement(string $sql, array $params = []): PDOStatement
     {
