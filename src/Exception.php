@@ -6,6 +6,6 @@ namespace SqliteKeyValueStore;
 /**
  * Exception thrown by any errors from within this package.
  */
-class Exception extends \Exception
+final class Exception extends \Exception
 {
 }

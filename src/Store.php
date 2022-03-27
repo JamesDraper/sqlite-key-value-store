@@ -9,7 +9,7 @@ use PDO;
 
 use LogicException;
 
-class Store
+final class Store
 {
     private const SQL_GET_KEY = 'SELECT value FROM store WHERE key=:key';
 
@@ -56,7 +56,7 @@ class Store
     public function get(string $key, mixed $default = null): mixed
     {
         try {
-            $statement = $this->execute(static::SQL_GET_KEY, [':key' => $key]);
+            $statement = $this->execute(self::SQL_GET_KEY, [':key' => $key]);
         } catch (PDOException $e) {
             throw new Exception('Store could not be read from.', 0, $e);
         }
@@ -66,11 +66,11 @@ class Store
         return $results ? $results[0]['value'] : $default;
     }
 
-    public function set(string $key, mixed $value): static
+    public function set(string $key, mixed $value): self
     {
         try {
             $this->execute(
-                static::SQL_SET_KEY,
+                self::SQL_SET_KEY,
                 [
                     ':value' => $value,
                     ':key' => $key,
@@ -87,13 +87,13 @@ class Store
      * Removes a key from the store. If the key does not exist then nothing happens.
      *
      * @param string $key the key to delete.
-     * @return static
+     * @return self
      * @throws Exception if there was a problem while deleting the key.
      */
-    public function remove(string $key): static
+    public function remove(string $key): self
     {
         try {
-            $this->execute(static::SQL_DELETE_KEY, [':key' => $key]);
+            $this->execute(self::SQL_DELETE_KEY, [':key' => $key]);
         } catch (PDOException $e) {
             throw new Exception('Store could not be written to.', 0, $e);
         }
@@ -135,7 +135,7 @@ class Store
     private function tableExists(): bool
     {
         return [] !== $this
-                ->bindAndExecuteStatement(static::SQL_TABLE_EXISTS)
+                ->bindAndExecuteStatement(self::SQL_TABLE_EXISTS)
                 ->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -146,7 +146,7 @@ class Store
      */
     private function makeTable(): void
     {
-        $this->bindAndExecuteStatement(static::SQL_MAKE_TABLE);
+        $this->bindAndExecuteStatement(self::SQL_MAKE_TABLE);
     }
 
     /**
