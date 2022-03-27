@@ -9,6 +9,9 @@ use PDO;
 
 use LogicException;
 
+use function file_exists;
+use function touch;
+
 /**
  * Sqlite key-value store
  *
@@ -41,23 +44,27 @@ final class Store
      *
      * @throws LogicException if $filePath is ":memory:" as this indicates
      *     an in-memory sqlite database, which would not persist between requests.
-     * @throws PDOException if the sqlite database connection could not be established.
+     * @throws Exception if the sqlite database connection could not be established.
      */
     public function __construct(string $filePath)
     {
         $filePath = trim($filePath);
 
-        if (!file_exists($filePath)) {
-            touch($filePath);
-        }
-
         if (':memory:' === $filePath) {
             throw new LogicException('Sqlite store cannot be in memory.');
         }
 
-        $this->pdo = new PDO('sqlite:' . $filePath, null, null, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-        ]);
+        if (!file_exists($filePath)) {
+            touch($filePath);
+        }
+
+        try {
+            $this->pdo = new PDO('sqlite:' . $filePath, null, null, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+            ]);
+        } catch (PDOException $e) {
+            throw new Exception('Sqlite database connection could not be established', $e);
+        }
     }
 
     /**
@@ -74,7 +81,7 @@ final class Store
         try {
             $statement = $this->execute(self::SQL_GET_KEY, [':key' => $key]);
         } catch (PDOException $e) {
-            throw new Exception('Store could not be read from.', 0, $e);
+            throw new Exception('Store could not be read from.', $e);
         }
 
         $results = $statement->fetchAll(PDO::FETCH_ASSOC);
@@ -101,7 +108,7 @@ final class Store
                 ]
             );
         } catch (PDOException $e) {
-            throw new Exception('Store could not be written to.', 0, $e);
+            throw new Exception('Store could not be written to.', $e);
         }
 
         return $this;
@@ -119,7 +126,7 @@ final class Store
         try {
             $this->execute(self::SQL_DELETE_KEY, [':key' => $key]);
         } catch (PDOException $e) {
-            throw new Exception('Store could not be written to.', 0, $e);
+            throw new Exception('Store could not be written to.', $e);
         }
 
         return $this;
