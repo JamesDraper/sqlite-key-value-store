@@ -4,15 +4,25 @@
             "SqliteKeyValueStore\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Test\\": "test"
+        }
+    },
     "require": {
         "php": ">=8.1.4",
         "ext-pdo": "*",
         "ext-pdo_sqlite": "*"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.6"
+        "squizlabs/php_codesniffer": "^3.6",
+        "phpunit/phpunit": "^9.5"
     },
     "scripts": {
-        "phpcs": "phpcs src"
+        "test": ["@phpunit", "@phpcs"],
+        "phpunit": "phpunit",
+        "phpcs": ["@phpcs.src", "@phpcs.test"],
+        "phpcs.src": "phpcs src --standard=phpcs.src.xml",
+        "phpcs.test": "phpcs test --standard=phpcs.test.xml"
     }
 }
