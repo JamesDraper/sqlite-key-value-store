@@ -11,6 +11,21 @@ use LogicException;
 
 class Store
 {
+    private const SQL_GET_KEY = 'SELECT value FROM store WHERE key=:key';
+
+    private const SQL_SET_KEY = 'INSERT INTO '
+        . 'store (key, value) VALUES(:key, :value) '
+        . 'ON CONFLICT(key) DO UPDATE SET value=:value where key=:key';
+
+    private const SQL_DELETE_KEY = 'DELETE FROM store WHERE key=:key';
+
+    private const SQL_TABLE_EXISTS = 'SELECT name FROM sqlite_master '
+        . 'WHERE type="table" AND name="store"';
+
+    private const SQL_MAKE_TABLE = 'CREATE TABLE store '
+        . '(key TEXT PRIMARY KEY, value TEXT) '
+        . 'WITHOUT ROWID';
+
     private PDO $pdo;
 
     /**
@@ -41,10 +56,7 @@ class Store
     public function get(string $key, mixed $default = null): mixed
     {
         try {
-            $statement = $this->execute(
-                'SELECT value FROM store WHERE key=:key',
-                [':key' => $key]
-            );
+            $statement = $this->execute(static::SQL_GET_KEY, [':key' => $key]);
         } catch (PDOException $e) {
             throw new Exception('Store could not be read from.', 0, $e);
         }
@@ -58,8 +70,7 @@ class Store
     {
         try {
             $this->execute(
-                'INSERT INTO store (key, value) VALUES(:key, :value) '
-                . 'ON CONFLICT(key) DO UPDATE SET value=:value where key=:key',
+                static::SQL_SET_KEY,
                 [
                     ':value' => $value,
                     ':key' => $key,
@@ -82,7 +93,7 @@ class Store
     public function remove(string $key): static
     {
         try {
-            $this->execute('DELETE FROM store WHERE key=:key', [':key' => $key]);
+            $this->execute(static::SQL_DELETE_KEY, [':key' => $key]);
         } catch (PDOException $e) {
             throw new Exception('Store could not be written to.', 0, $e);
         }
@@ -124,7 +135,7 @@ class Store
     private function tableExists(): bool
     {
         return [] !== $this
-                ->bindAndExecuteStatement('SELECT name FROM sqlite_master WHERE type="table" AND name="store"')
+                ->bindAndExecuteStatement(static::SQL_TABLE_EXISTS)
                 ->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -135,7 +146,7 @@ class Store
      */
     private function makeTable(): void
     {
-        $this->bindAndExecuteStatement('CREATE TABLE store (key TEXT PRIMARY KEY, value TEXT) WITHOUT ROWID');
+        $this->bindAndExecuteStatement(static::SQL_MAKE_TABLE);
     }
 
     /**
