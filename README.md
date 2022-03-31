@@ -8,7 +8,7 @@ A key-value file is managed via the `\SqliteKeyValueStore\Store` class. To
 create an instance, pass the absolute path to the key-value file into the
 constructor. If the file does not exist yet, the constructor will create it.
 
-    $store = \SqliteKeyValueStore\Store('path/to/file');
+    $store = \SqliteKeyValueStore\Store('/path/to/file');
 
 There are 2 exceptions that can be thrown by the constructor:
 - `\LogicException` if the path is `:memory:`. In memory databases are strictly forbidden.

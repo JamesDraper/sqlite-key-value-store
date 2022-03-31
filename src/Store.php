@@ -39,27 +39,27 @@ final class Store
     private PDO $pdo;
 
     /**
-     * @param string $filePath the absolute path to the sqlite file.
+     * @param string $absoluteFilePath the absolute path to the sqlite file.
      *     If it does not exist it will be created.
      *
      * @throws LogicException if $filePath is ":memory:" as this indicates
      *     an in-memory sqlite database, which would not persist between requests.
      * @throws Exception if the sqlite database connection could not be established.
      */
-    public function __construct(string $filePath)
+    public function __construct(string $absoluteFilePath)
     {
-        $filePath = trim($filePath);
+        $absoluteFilePath = trim($absoluteFilePath);
 
-        if (':memory:' === $filePath) {
+        if (':memory:' === $absoluteFilePath) {
             throw new LogicException('Sqlite store cannot be in memory.');
         }
 
-        if (!file_exists($filePath)) {
-            touch($filePath);
+        if (!file_exists($absoluteFilePath)) {
+            touch($absoluteFilePath);
         }
 
         try {
-            $this->pdo = new PDO('sqlite:' . $filePath, null, null, [
+            $this->pdo = new PDO('sqlite:' . $absoluteFilePath, null, null, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             ]);
         } catch (PDOException $e) {
