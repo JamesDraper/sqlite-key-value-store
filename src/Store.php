@@ -72,11 +72,11 @@ final class Store
      *     then default is returned instead.
      *
      * @param string $key the key to get.
-     * @param mixed $default the value to return if the key is not set.
-     * @return mixed the value of the default.
+     * @param ?string $default the value to return if the key is not set.
+     * @return ?string the value of the default.
      * @throws Exception if there was a problem while getting the key.
      */
-    public function get(string $key, mixed $default = null): mixed
+    public function get(string $key, ?string $default = null): ?string
     {
         try {
             $statement = $this->execute(self::SQL_GET_KEY, [':key' => $key]);
@@ -93,11 +93,11 @@ final class Store
      * Writes a key to the store. If the key does not exist then it is created.
      *
      * @param string $key the key to set.
-     * @param mixed $value the value to set.
+     * @param string $value the value to set.
      * @return self for method chaining.
      * @throws Exception if there was a problem while setting the key.
      */
-    public function set(string $key, mixed $value): self
+    public function set(string $key, string $value): self
     {
         try {
             $this->execute(
