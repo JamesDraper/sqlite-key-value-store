@@ -7,16 +7,29 @@ use SqliteKeyValueStore\Store;
 
 use PHPUnit\Framework\TestCase;
 
+use function str_repeat;
 use function unlink;
 use function copy;
 
 class StoreTest extends TestCase
 {
+    private const BACKUP_DB_PATH = __DIR__ . '/backup.sqlite';
+
     private const SEED_DB_PATH = __DIR__ . '/seed.sqlite';
 
     private const TEST_DB_PATH = __DIR__ . '/test.sqlite';
 
     private Store $store;
+
+    /**
+     * @test
+     */
+    public function backup_copies_sqlite_file_to_another_file(): void
+    {
+        $this->store->backup(static::BACKUP_DB_PATH);
+
+        $this->assertFileEquals(static::BACKUP_DB_PATH, static::TEST_DB_PATH);
+    }
 
     /**
      * @test
@@ -234,6 +247,7 @@ class StoreTest extends TestCase
 
         unset($this->store);
 
+        @unlink(static::BACKUP_DB_PATH);
         @unlink(static::TEST_DB_PATH);
     }
 }

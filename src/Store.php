@@ -76,6 +76,7 @@ final class Store
      */
     public function backup(string $absoluteFilePath): self
     {
+        $wasCreated = false;
         $filePath = $this->parseAbsoluteFilePath($absoluteFilePath, $wasCreated);
 
         if ($this->filePath === $filePath) {
@@ -260,7 +261,7 @@ final class Store
             $fileName = basename($absoluteFilePath);
 
             @mkdir($directoryPath);
-            @touch($fileName);
+            @touch($directoryPath . '/' . $fileName);
 
             $formatted = @realpath($absoluteFilePath);
 

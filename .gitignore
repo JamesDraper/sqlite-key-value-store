@@ -2,6 +2,7 @@
 
 vendor/*
 
+test/backup.sqlite
 test/test.sqlite
 composer.lock
 composer.phar
