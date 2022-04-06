@@ -133,6 +133,23 @@ class StoreTest extends TestCase
 
     /**
      * @test
+     * @depends get_returns_null_if_key_does_not_exist
+     * @depends get_returns_default_if_key_does_not_exist
+     * @depends get_returns_value
+     */
+    public function set_stores_long_values(): void
+    {
+        $text = str_repeat('a', 50000000);
+
+        $result1 = $this->store->set('KEY 4', $text);
+        $result2 = $this->store->get('KEY 4');
+
+        $this->assertSame($this->store, $result1);
+        $this->assertSame($text, $result2);
+    }
+
+    /**
+     * @test
      */
     public function remove_returns_self_for_method_chaining(): void
     {
