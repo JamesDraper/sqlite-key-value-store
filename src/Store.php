@@ -7,12 +7,18 @@ use PDOException;
 use PDOStatement;
 use PDO;
 
+use function basename;
 use function copy;
+use function dirname;
 use function file_exists;
+use function mkdir;
+use function pathinfo;
 use function realpath;
 use function sprintf;
 use function touch;
 use function trim;
+use const PATHINFO_BASENAME;
+use const PATHINFO_DIRNAME;
 
 /**
  * Sqlite key-value store
@@ -248,8 +254,13 @@ final class Store
         $formatted = @realpath($absoluteFilePath);
 
         if (false === $formatted) {
-            touch($absoluteFilePath);
             $wasCreated = true;
+
+            $directoryPath = dirname($absoluteFilePath);
+            $fileName = basename($absoluteFilePath);
+
+            @mkdir($directoryPath);
+            @touch($fileName);
 
             $formatted = @realpath($absoluteFilePath);
 
