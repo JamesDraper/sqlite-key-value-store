@@ -8,17 +8,13 @@ use PDOStatement;
 use PDO;
 
 use function basename;
-use function copy;
-use function dirname;
-use function file_exists;
-use function mkdir;
-use function pathinfo;
 use function realpath;
+use function dirname;
 use function sprintf;
+use function mkdir;
 use function touch;
+use function copy;
 use function trim;
-use const PATHINFO_BASENAME;
-use const PATHINFO_DIRNAME;
 
 /**
  * Sqlite key-value store
@@ -32,17 +28,17 @@ final class Store
     private const SQL_GET_KEY = 'SELECT value FROM store WHERE key=:key';
 
     private const SQL_SET_KEY = 'INSERT INTO '
-        . 'store (key, value) VALUES(:key, :value) '
-        . 'ON CONFLICT(key) DO UPDATE SET value=:value where key=:key';
+    . 'store (key, value) VALUES(:key, :value) '
+    . 'ON CONFLICT(key) DO UPDATE SET value=:value where key=:key';
 
     private const SQL_DELETE_KEY = 'DELETE FROM store WHERE key=:key';
 
     private const SQL_TABLE_EXISTS = 'SELECT name FROM sqlite_master '
-        . 'WHERE type="table" AND name="store"';
+    . 'WHERE type="table" AND name="store"';
 
     private const SQL_MAKE_TABLE = 'CREATE TABLE store '
-        . '(key TEXT PRIMARY KEY, value TEXT) '
-        . 'WITHOUT ROWID';
+    . '(key TEXT PRIMARY KEY, value TEXT) '
+    . 'WITHOUT ROWID';
 
     private string $filePath;
 
