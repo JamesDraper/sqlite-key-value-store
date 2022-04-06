@@ -2,6 +2,7 @@
 
 vendor/*
 
+test/test.sqlite
 composer.lock
 composer.phar
 phpunit.xml
