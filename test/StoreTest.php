@@ -101,9 +101,13 @@ class StoreTest extends TestCase
     {
         $this->store->set('KEY 1', 'VALUE 4');
 
-        $result = $this->store->get('KEY 1');
+        $result1 = $this->store->get('KEY 1');
+        $result2 = $this->store->get('KEY 2');
+        $result3 = $this->store->get('KEY 3');
 
-        $this->assertSame('VALUE 4', $result);
+        $this->assertSame('VALUE 4', $result1);
+        $this->assertSame('VALUE 2', $result2);
+        $this->assertSame('VALUE 3', $result3);
     }
 
     /**
