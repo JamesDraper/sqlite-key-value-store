@@ -2,6 +2,7 @@
 
 vendor/*
 
+test/already.exists.txt
 test/backup.sqlite
 test/test.sqlite
 composer.lock

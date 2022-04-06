@@ -76,7 +76,7 @@ final class Store
         $filePath = $this->parseAbsoluteFilePath($absoluteFilePath, $wasCreated);
 
         if ($this->filePath === $filePath) {
-            throw new Exception('Backup filepath and store file path cannot match.');
+            throw new Exception('Backup file path and store file path cannot match.');
         }
 
         if (!$wasCreated) {

@@ -3,16 +3,20 @@ declare(strict_types=1);
 
 namespace Test;
 
+use SqliteKeyValueStore\Exception;
 use SqliteKeyValueStore\Store;
 
 use PHPUnit\Framework\TestCase;
 
 use function str_repeat;
 use function unlink;
+use function touch;
 use function copy;
 
 class StoreTest extends TestCase
 {
+    private const ALREADY_EXISTS_PATH = __DIR__ . '/already.exists.txt';
+
     private const BACKUP_DB_PATH = __DIR__ . '/backup.sqlite';
 
     private const SEED_DB_PATH = __DIR__ . '/seed.sqlite';
@@ -29,6 +33,30 @@ class StoreTest extends TestCase
         $this->store->backup(static::BACKUP_DB_PATH);
 
         $this->assertFileEquals(static::BACKUP_DB_PATH, static::TEST_DB_PATH);
+    }
+
+    /**
+     * @test
+     */
+    public function backup_fails_if_destination_and_src_are_same(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Backup file path and store file path cannot match.');
+
+        $this->store->backup(static::TEST_DB_PATH);
+    }
+
+    /**
+     * @test
+     */
+    public function backup_fails_if_destination_already_exists(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('Backup file path must be empty.');
+
+        touch(static::ALREADY_EXISTS_PATH);
+
+        $this->store->backup(static::ALREADY_EXISTS_PATH);
     }
 
     /**
@@ -234,6 +262,7 @@ class StoreTest extends TestCase
     {
         parent::setUp();
 
+        @unlink(static::ALREADY_EXISTS_PATH);
         @unlink(static::TEST_DB_PATH);
 
         copy(static::SEED_DB_PATH, static::TEST_DB_PATH);
