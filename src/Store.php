@@ -7,10 +7,12 @@ use PDOException;
 use PDOStatement;
 use PDO;
 
-use LogicException;
-
+use function copy;
 use function file_exists;
+use function realpath;
+use function sprintf;
 use function touch;
+use function trim;
 
 /**
  * Sqlite key-value store
@@ -36,35 +38,57 @@ final class Store
         . '(key TEXT PRIMARY KEY, value TEXT) '
         . 'WITHOUT ROWID';
 
+    private string $filePath;
+
     private PDO $pdo;
 
     /**
      * @param string $absoluteFilePath the absolute path to the sqlite file.
      *     If it does not exist it will be created.
      *
-     * @throws LogicException if $filePath is ":memory:" as this indicates
-     *     an in-memory sqlite database, which would not persist between requests.
-     * @throws Exception if the sqlite database connection could not be established.
+     * @throws Exception if the sqlite database connection could not be established,
+     *     if the sqlite file does not exist and could not be created,
+     *     or if the file path is ":memory:".
      */
     public function __construct(string $absoluteFilePath)
     {
-        $absoluteFilePath = trim($absoluteFilePath);
-
-        if (':memory:' === $absoluteFilePath) {
-            throw new LogicException('Sqlite store cannot be in memory.');
-        }
-
-        if (!file_exists($absoluteFilePath)) {
-            touch($absoluteFilePath);
-        }
+        $this->filePath = $this->parseAbsoluteFilePath($absoluteFilePath);
 
         try {
-            $this->pdo = new PDO('sqlite:' . $absoluteFilePath, null, null, [
+            $this->pdo = new PDO('sqlite:' . $this->filePath, null, null, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             ]);
         } catch (PDOException $e) {
             throw new Exception('Sqlite database connection could not be established', $e);
         }
+    }
+
+    /**
+     * @throws Exception if the backup file path matches the store file path,
+     *     if the backup file path was invalid, or if
+     *     the backup file path is not empty.
+     */
+    public function backup(string $absoluteFilePath): self
+    {
+        $filePath = $this->parseAbsoluteFilePath($absoluteFilePath, $wasCreated);
+
+        if ($this->filePath === $filePath) {
+            throw new Exception('Backup filepath and store file path cannot match.');
+        }
+
+        if (!$wasCreated) {
+            throw new Exception('Backup file path must be empty.');
+        }
+
+        if (!@copy($this->filePath, $filePath)) {
+            throw new Exception(sprintf(
+                'Could not back up store: "%s" => "%s".',
+                $this->filePath,
+                $filePath
+            ));
+        }
+
+        return $this;
     }
 
     /**
@@ -207,5 +231,36 @@ final class Store
         $statement->execute();
 
         return $statement;
+    }
+
+    /**
+     * @throws Exception if the file does not exist and could not be created
+     *     or if the path is ":memory:".
+     */
+    private function parseAbsoluteFilePath(string $absoluteFilePath, bool &$wasCreated = false): string
+    {
+        $absoluteFilePath = trim($absoluteFilePath);
+
+        if (':memory:' === $absoluteFilePath) {
+            throw new Exception('Sqlite store cannot be in memory.');
+        }
+
+        $formatted = @realpath($absoluteFilePath);
+
+        if (false === $formatted) {
+            touch($absoluteFilePath);
+            $wasCreated = true;
+
+            $formatted = @realpath($absoluteFilePath);
+
+            if (false === $formatted) {
+                throw new Exception(sprintf(
+                    'Could not create sqlite file: "%s"',
+                    $absoluteFilePath
+                ));
+            }
+        }
+
+        return $formatted;
     }
 }
