@@ -11,10 +11,13 @@ use function basename;
 use function realpath;
 use function dirname;
 use function sprintf;
+use function strlen;
 use function mkdir;
 use function touch;
 use function copy;
 use function trim;
+
+use const PHP_MAXPATHLEN;
 
 /**
  * Sqlite key-value store
@@ -42,7 +45,9 @@ final class Store
         . '(key TEXT PRIMARY KEY, value TEXT) '
         . 'WITHOUT ROWID';
 
-    private string $filePath;
+    private string $databaseFilePath;
+
+    private string $lockFilePath;
 
     private PDO $pdo;
 
@@ -54,12 +59,19 @@ final class Store
      *     if the sqlite file does not exist and could not be created,
      *     or if the file path is ":memory:".
      */
-    public function __construct(string $absoluteFilePath)
+    public function __construct(string $absoluteFilePath, ?string $lockFilePath = null)
     {
-        $this->filePath = $this->parseAbsoluteFilePath($absoluteFilePath);
+        $this->databaseFilePath = $this->parseAbsoluteFilePath($absoluteFilePath);
+
+        if (null === $lockFilePath) {
+            $this->lockFilePath = $this->databaseFilePath . '.lock';
+            $this->assertPathLength($this->lockFilePath);
+        } else {
+            $this->parseAbsoluteFilePath($absoluteFilePath);
+        }
 
         try {
-            $this->pdo = new PDO('sqlite:' . $this->filePath, null, null, [
+            $this->pdo = new PDO('sqlite:' . $this->databaseFilePath, null, null, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             ]);
         } catch (PDOException $e) {
@@ -77,7 +89,7 @@ final class Store
         $wasCreated = false;
         $filePath = $this->parseAbsoluteFilePath($absoluteFilePath, $wasCreated);
 
-        if ($this->filePath === $filePath) {
+        if ($this->databaseFilePath === $filePath) {
             throw new Exception('Backup file path and store file path cannot match.');
         }
 
@@ -85,10 +97,10 @@ final class Store
             throw new Exception('Backup file path must be empty.');
         }
 
-        if (!@copy($this->filePath, $filePath)) {
+        if (!@copy($this->databaseFilePath, $filePath)) {
             throw new Exception(sprintf(
                 'Could not back up store: "%s" => "%s".',
-                $this->filePath,
+                $this->databaseFilePath,
                 $filePath
             ));
         }
@@ -284,6 +296,15 @@ final class Store
             }
         }
 
+        $this->assertPathLength($formatted);
+
         return $formatted;
+    }
+
+    private function assertPathLength(string $path): void
+    {
+        if (strlen($path) > PHP_MAXPATHLEN) {
+            throw new Exception('Path exceed maximum path length');
+        }
     }
 }
