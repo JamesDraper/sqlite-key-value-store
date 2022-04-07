@@ -9,6 +9,8 @@ use PDO;
 
 use Throwable;
 
+use function array_merge;
+use function array_reduce;
 use function call_user_func;
 use function realpath;
 use function basename;
@@ -19,6 +21,7 @@ use function strlen;
 use function flock;
 use function fopen;
 use function mkdir;
+use function strtr;
 use function touch;
 use function copy;
 use function trim;
@@ -36,6 +39,12 @@ use const PHP_MAXPATHLEN;
  */
 final class Store
 {
+    private const SQL_SEARCH = 'SELECT * FROM store WHERE key LIKE :key AND value LIKE :value';
+
+    private const SQL_SEARCH_KEY = 'SELECT * FROM store WHERE key LIKE :key';
+
+    private const SQL_SEARCH_VALUE = 'SELECT * FROM store WHERE value LIKE :value';
+
     private const SQL_COUNT = 'SELECT COUNT(*) AS count FROM store';
 
     private const SQL_GET_KEY = 'SELECT value FROM store WHERE key=:key';
@@ -198,6 +207,71 @@ final class Store
         });
 
         return $this;
+    }
+
+    public function search(string $key, string $value, string $wildcard = '*')
+    {
+        $key = $this->prepareSearch($key, $wildcard);
+        $value = $this->prepareSearch($value, $wildcard);
+
+        try {
+            $rows = $this
+                ->execute(self::SQL_SEARCH, [':key' => $key, ':value' => $value])
+                ->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new Exception('Store could not be searched.', $e);
+        }
+
+        return $this->formatSearch($rows);
+    }
+
+    public function searchKey(string $key, string $wildcard = '*'): array
+    {
+        $key = $this->prepareSearch($key, $wildcard);
+
+        try {
+            $rows = $this
+                ->execute(self::SQL_SEARCH_KEY, [':key' => $key])
+                ->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new Exception('Store could not be searched.', $e);
+        }
+
+        return $this->formatSearch($rows);
+    }
+
+    public function searchValue(string $value, string $wildcard = '*'): array
+    {
+        $value = $this->prepareSearch($value, $wildcard);
+
+        try {
+            $rows = $this
+                ->execute(self::SQL_SEARCH_VALUE, [':value' => $value])
+                ->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new Exception('Store could not be searched.', $e);
+        }
+
+        return $this->formatSearch($rows);
+    }
+
+    private function prepareSearch(string $str, $wildcard): string
+    {
+        if ($wildcard === '%') {
+            return $str;
+        }
+
+        return strtr($str, [
+            $wildcard => '%',
+            '%' => '\\%',
+        ]);
+    }
+
+    private function formatSearch(array $rows): array
+    {
+        return array_reduce($rows, function (array $rows, array $row): array {
+            return array_merge($rows, [$row['key'] => $row['value']]);
+        }, []);
     }
 
     /**
