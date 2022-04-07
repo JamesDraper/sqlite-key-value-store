@@ -7,16 +7,24 @@ use PDOException;
 use PDOStatement;
 use PDO;
 
-use function basename;
+use Throwable;
+
+use function call_user_func;
 use function realpath;
+use function basename;
 use function dirname;
 use function sprintf;
+use function fclose;
 use function strlen;
+use function flock;
+use function fopen;
 use function mkdir;
 use function touch;
 use function copy;
 use function trim;
 
+use const LOCK_EX;
+use const LOCK_UN;
 use const PHP_MAXPATHLEN;
 
 /**
@@ -97,13 +105,15 @@ final class Store
             throw new Exception('Backup file path must be empty.');
         }
 
-        if (!@copy($this->databaseFilePath, $filePath)) {
-            throw new Exception(sprintf(
-                'Could not back up store: "%s" => "%s".',
-                $this->databaseFilePath,
-                $filePath
-            ));
-        }
+        $this->lock(function () use ($filePath): void {
+            if (!@copy($this->databaseFilePath, $filePath)) {
+                throw new Exception(sprintf(
+                    'Could not back up store: "%s" => "%s".',
+                    $this->databaseFilePath,
+                    $filePath
+                ));
+            }
+        });
 
         return $this;
     }
@@ -153,17 +163,19 @@ final class Store
      */
     public function set(string $key, string $value): self
     {
-        try {
-            $this->execute(
-                self::SQL_SET_KEY,
-                [
-                    ':value' => $value,
-                    ':key' => $key,
-                ]
-            );
-        } catch (PDOException $e) {
-            throw new Exception('Store could not be written to.', $e);
-        }
+        $this->lock(function () use ($key, $value): void {
+            try {
+                $this->execute(
+                    self::SQL_SET_KEY,
+                    [
+                        ':value' => $value,
+                        ':key' => $key,
+                    ]
+                );
+            } catch (PDOException $e) {
+                throw new Exception('Store could not be written to.', $e);
+            }
+        });
 
         return $this;
     }
@@ -177,11 +189,13 @@ final class Store
      */
     public function remove(string $key): self
     {
-        try {
-            $this->execute(self::SQL_DELETE_KEY, [':key' => $key]);
-        } catch (PDOException $e) {
-            throw new Exception('Store could not be written to.', $e);
-        }
+        $this->lock(function () use ($key): void {
+            try {
+                $this->execute(self::SQL_DELETE_KEY, [':key' => $key]);
+            } catch (PDOException $e) {
+                throw new Exception('Store could not be written to.', $e);
+            }
+        });
 
         return $this;
     }
@@ -305,6 +319,45 @@ final class Store
     {
         if (strlen($path) > PHP_MAXPATHLEN) {
             throw new Exception('Path exceed maximum path length');
+        }
+    }
+
+    private function lock(callable $func)
+    {
+        $fp = @fopen($this->lockFilePath, 'a');
+
+        if (false === $fp) {
+            throw new Exception('Could not open obtain lock file.');
+        }
+
+        if (false === @flock($fp, LOCK_EX)) {
+            throw new Exception('Could not obtain exclusive lock on lock file.');
+        }
+
+        try {
+            $result = call_user_func($func);
+        } catch (Throwable $e) {
+            $this->unlock($fp);
+
+            throw $e;
+        }
+
+        $this->unlock($fp);
+
+        return $result;
+    }
+
+    /**
+     * @param resource $fp
+     */
+    private function unlock($fp): void
+    {
+        if (false === @flock($fp, LOCK_UN)) {
+            throw new Exception('Could not unlock lock file.');
+        }
+
+        if (false === @fclose($fp)) {
+            throw new Exception('Could not close lock file');
         }
     }
 }
