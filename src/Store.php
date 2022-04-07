@@ -25,6 +25,8 @@ use function trim;
  */
 final class Store
 {
+    private const SQL_COUNT = 'SELECT COUNT(*) AS count FROM store';
+
     private const SQL_GET_KEY = 'SELECT value FROM store WHERE key=:key';
 
     private const SQL_SET_KEY = 'INSERT INTO '
@@ -92,6 +94,19 @@ final class Store
         }
 
         return $this;
+    }
+
+    public function getSize(): int
+    {
+        try {
+            $statement = $this->execute(self::SQL_COUNT);
+        } catch (PDOException $e) {
+            throw new Exception('Store could not be read from.', $e);
+        }
+
+        $results = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+        return $results[0]['count'];
     }
 
     /**
@@ -170,7 +185,7 @@ final class Store
      * @throws PDOException If the statement could not be executed
      *     or the database could not be initialized.
      */
-    private function execute(string $sql, array $params): PDOStatement
+    private function execute(string $sql, array $params = []): PDOStatement
     {
         try {
             return $this->bindAndExecuteStatement($sql, $params);
