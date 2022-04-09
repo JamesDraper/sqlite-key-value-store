@@ -10,22 +10,20 @@ use PDO;
 use RuntimeException;
 use Throwable;
 
+use function function_exists;
 use function call_user_func;
 use function array_reduce;
 use function array_merge;
-use function chmod;
 use function file_exists;
-use function function_exists;
 use function realpath;
-use function basename;
 use function dirname;
 use function sprintf;
 use function fclose;
 use function strlen;
+use function chmod;
 use function flock;
 use function fopen;
 use function mkdir;
-use function strtr;
 use function touch;
 use function copy;
 use function trim;
@@ -108,15 +106,17 @@ final class Store
      */
     public function __construct(string $absoluteFilePath, ?string $lockFilePath = null)
     {
-        $this->loadFormatPathHelper();
-
         $this->sqlitePath = $this->parseAbsoluteFilePath($absoluteFilePath);
 
+        if (!file_exists($this->sqlitePath)) {
+            $this->makeEmptyFile($absoluteFilePath);
+        }
+
         if (null === $lockFilePath) {
-            $this->mutexPath = $this->sqlitePath . '.lock';
+            $this->mutexPath = $this->sqlitePath . '.mutex';
             $this->assertPathLength($this->mutexPath);
         } else {
-            $this->parseAbsoluteFilePath($absoluteFilePath);
+            $this->mutexPath = $this->parseAbsoluteFilePath($lockFilePath);
         }
 
         try {
@@ -135,14 +135,13 @@ final class Store
      */
     public function backup(string $absoluteFilePath): self
     {
-        $wasCreated = false;
-        $filePath = $this->parseAbsoluteFilePath($absoluteFilePath, $wasCreated);
+        $filePath = $this->parseAbsoluteFilePath($absoluteFilePath);
 
         if ($this->sqlitePath === $filePath) {
             throw new Exception('Backup file path and store file path cannot match.');
         }
 
-        if (!$wasCreated) {
+        if (file_exists($filePath)) {
             throw new Exception('Backup file path must be empty.');
         }
 
@@ -384,50 +383,6 @@ final class Store
     }
 
     /**
-     * @throws Exception if the file does not exist and could not be created
-     *     or if the path is ":memory:".
-     */
-    private function parseAbsoluteFilePath(string $absoluteFilePath, bool &$wasCreated = false): string
-    {
-        $absoluteFilePath = trim($absoluteFilePath);
-
-        if (':memory:' === $absoluteFilePath) {
-            throw new Exception('Sqlite store cannot be in memory.');
-        }
-
-        $formatted = @realpath($absoluteFilePath);
-
-        if (false === $formatted) {
-            $wasCreated = true;
-
-            $this->makeEmptyFile($absoluteFilePath);
-
-            $formatted = @realpath($absoluteFilePath);
-
-            if (false === $formatted) {
-                throw new Exception(sprintf(
-                    'Could not create sqlite file: "%s"',
-                    $absoluteFilePath
-                ));
-            }
-        }
-
-        $this->assertPathLength($formatted);
-
-        return $formatted;
-    }
-
-    private function assertPathLength(string $path): void
-    {
-        if (strlen($path) > PHP_MAXPATHLEN) {
-            throw new Exception(sprintf(
-                'Path exceeds maximum path length: "%s".',
-                $path
-            ));
-        }
-    }
-
-    /**
      * Runs a callable as a synchronous operation across all processes/threads.
      *
      * @param callable $func the callable to execute.
@@ -524,6 +479,32 @@ final class Store
     }
 
     /**
+     * Cleans up a path, standardizing directory separators, removing ".." etc.
+     *
+     * @param string $path the path to format.
+     * @return string the formatted path.
+     * @throws Exception if the provided path is invalid or cannot be formatted.
+     */
+    private function parseAbsoluteFilePath(string $absoluteFilePath): string
+    {
+        if (':memory:' === trim($absoluteFilePath)) {
+            throw new Exception('Sqlite store cannot be in memory.');
+        }
+
+        $formatted = @realpath($absoluteFilePath);
+
+        if (false === $formatted) {
+            $this->loadFormatPathHelper();
+
+            $formatted = format_path($absoluteFilePath);
+        }
+
+        $this->assertPathLength($formatted);
+
+        return $formatted;
+    }
+
+    /**
      * Attempts to load the format_path helper if it does not exist.
      *
      * This method is potentially overkill. The formatted path to the
@@ -552,6 +533,22 @@ final class Store
             } catch (Throwable $e) {
                 throw new Exception('Could not load format_path helper.');
             }
+        }
+    }
+
+    /**
+     * Asserts that a file/directory path does not exceed PHP_MAXPATHLEN.
+     *
+     * @param string $path the file/directory path to check.
+     * @throws Exception if the file/directory path exceeds PHP_MAXPATHLEN.
+     */
+    private function assertPathLength(string $path): void
+    {
+        if (strlen($path) > PHP_MAXPATHLEN) {
+            throw new Exception(sprintf(
+                'Path exceeds maximum path length: "%s".',
+                $path
+            ));
         }
     }
 }

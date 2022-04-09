@@ -44,7 +44,7 @@ function format_path(string $path): string
         }
 
         return $segments;
-    });
+    }, []);
 
     return implode('/', $segments);
 }
