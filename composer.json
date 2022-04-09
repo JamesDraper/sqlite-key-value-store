@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "SqliteKeyValueStore\\": "src"
+            "SqliteKeyValueStore\\": "src/classes"
         }
     },
     "autoload-dev": {

@@ -7,6 +7,7 @@ use PDOException;
 use PDOStatement;
 use PDO;
 
+use RuntimeException;
 use Throwable;
 
 use function call_user_func;
@@ -14,6 +15,7 @@ use function array_reduce;
 use function array_merge;
 use function chmod;
 use function file_exists;
+use function function_exists;
 use function realpath;
 use function basename;
 use function dirname;
@@ -106,6 +108,8 @@ final class Store
      */
     public function __construct(string $absoluteFilePath, ?string $lockFilePath = null)
     {
+        $this->loadFormatPathHelper();
+
         $this->sqlitePath = $this->parseAbsoluteFilePath($absoluteFilePath);
 
         if (null === $lockFilePath) {
@@ -516,6 +520,38 @@ final class Store
                 'Could not set file permissions: %s.',
                 $absoluteFilePath
             ));
+        }
+    }
+
+    /**
+     * Attempts to load the format_path helper if it does not exist.
+     *
+     * This method is potentially overkill. The formatted path to the
+     * file containing the format_path helper function is shorter than this
+     * path. The unformatted path is not. So if this file is at the limits of
+     * PHP_MAXPATHLEN, then the formatted path for the helper function should
+     * still be importable.
+     *
+     * Because of this, this method formats the path to the file containing
+     * format_path helper function, and loads it. If the function is already
+     * defined then it does nothing.
+     *
+     * @throws Exception if the helper function file could not be loaded.
+     */
+    private function loadFormatPathHelper(): void
+    {
+        if (!function_exists('\\SqliteKeyValueStore\\format_path')) {
+            $funcPath = @realpath(__DIR__ . '/../format_path.php');
+
+            try {
+                if (false === $funcPath) {
+                    throw new RuntimeException;
+                }
+
+                require_once $funcPath;
+            } catch (Throwable $e) {
+                throw new Exception('Could not load format_path helper.');
+            }
         }
     }
 }
