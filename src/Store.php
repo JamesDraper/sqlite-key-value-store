@@ -9,9 +9,11 @@ use PDO;
 
 use Throwable;
 
-use function array_merge;
-use function array_reduce;
 use function call_user_func;
+use function array_reduce;
+use function array_merge;
+use function chmod;
+use function file_exists;
 use function realpath;
 use function basename;
 use function dirname;
@@ -26,9 +28,9 @@ use function touch;
 use function copy;
 use function trim;
 
+use const PHP_MAXPATHLEN;
 use const LOCK_EX;
 use const LOCK_UN;
-use const PHP_MAXPATHLEN;
 
 /**
  * Sqlite key-value store
@@ -39,32 +41,58 @@ use const PHP_MAXPATHLEN;
  */
 final class Store
 {
-    private const SQL_SEARCH = 'SELECT * FROM store WHERE key LIKE :key AND value LIKE :value';
+    private const SQL_SEARCH = ''
+        . 'SELECT * '
+        . 'FROM store '
+        . 'WHERE key LIKE :key '
+        . '    AND value LIKE :value';
 
-    private const SQL_SEARCH_KEY = 'SELECT * FROM store WHERE key LIKE :key';
+    private const SQL_SEARCH_KEY = ''
+        . 'SELECT * '
+        . 'FROM store '
+        . 'WHERE key LIKE :key';
 
-    private const SQL_SEARCH_VALUE = 'SELECT * FROM store WHERE value LIKE :value';
+    private const SQL_SEARCH_VALUE = ''
+        . 'SELECT * '
+        . 'FROM store '
+        . 'WHERE value LIKE :value';
 
-    private const SQL_COUNT = 'SELECT COUNT(*) AS count FROM store';
+    private const SQL_COUNT = ''
+        . 'SELECT COUNT(*) AS count '
+        . 'FROM store';
 
-    private const SQL_GET_KEY = 'SELECT value FROM store WHERE key=:key';
+    private const SQL_GET_KEY = ''
+        . 'SELECT value '
+        . 'FROM store '
+        . 'WHERE key=:key';
 
-    private const SQL_SET_KEY = 'INSERT INTO '
-        . 'store (key, value) VALUES(:key, :value) '
-        . 'ON CONFLICT(key) DO UPDATE SET value=:value where key=:key';
+    private const SQL_SET_KEY = ''
+        . 'INSERT INTO store (key, value) '
+        . '    VALUES(:key, :value) '
+        . 'ON CONFLICT(key) '
+        . '    DO UPDATE '
+        . '        SET value=:value '
+        . '            WHERE key=:key';
 
-    private const SQL_DELETE_KEY = 'DELETE FROM store WHERE key=:key';
+    private const SQL_DELETE_KEY = ''
+        . 'DELETE FROM store '
+        . 'WHERE key=:key';
 
-    private const SQL_TABLE_EXISTS = 'SELECT name FROM sqlite_master '
-        . 'WHERE type="table" AND name="store"';
+    private const SQL_TABLE_EXISTS = ''
+        . 'SELECT name '
+        . 'FROM sqlite_master '
+        . 'WHERE type="table" '
+        . '    AND name="store"';
 
-    private const SQL_MAKE_TABLE = 'CREATE TABLE store '
-        . '(key TEXT PRIMARY KEY, value TEXT) '
-        . 'WITHOUT ROWID';
+    private const SQL_TABLE_MAKE = ''
+        . 'CREATE TABLE store ( '
+        . '    key TEXT PRIMARY KEY, '
+        . '   value TEXT '
+        . ') WITHOUT ROWID';
 
-    private string $databaseFilePath;
+    private string $sqlitePath;
 
-    private string $lockFilePath;
+    private string $mutexPath;
 
     private PDO $pdo;
 
@@ -78,17 +106,17 @@ final class Store
      */
     public function __construct(string $absoluteFilePath, ?string $lockFilePath = null)
     {
-        $this->databaseFilePath = $this->parseAbsoluteFilePath($absoluteFilePath);
+        $this->sqlitePath = $this->parseAbsoluteFilePath($absoluteFilePath);
 
         if (null === $lockFilePath) {
-            $this->lockFilePath = $this->databaseFilePath . '.lock';
-            $this->assertPathLength($this->lockFilePath);
+            $this->mutexPath = $this->sqlitePath . '.lock';
+            $this->assertPathLength($this->mutexPath);
         } else {
             $this->parseAbsoluteFilePath($absoluteFilePath);
         }
 
         try {
-            $this->pdo = new PDO('sqlite:' . $this->databaseFilePath, null, null, [
+            $this->pdo = new PDO('sqlite:' . $this->sqlitePath, null, null, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             ]);
         } catch (PDOException $e) {
@@ -106,7 +134,7 @@ final class Store
         $wasCreated = false;
         $filePath = $this->parseAbsoluteFilePath($absoluteFilePath, $wasCreated);
 
-        if ($this->databaseFilePath === $filePath) {
+        if ($this->sqlitePath === $filePath) {
             throw new Exception('Backup file path and store file path cannot match.');
         }
 
@@ -114,11 +142,11 @@ final class Store
             throw new Exception('Backup file path must be empty.');
         }
 
-        $this->lock(function () use ($filePath): void {
-            if (!@copy($this->databaseFilePath, $filePath)) {
+        $this->sync(function () use ($filePath): void {
+            if (!@copy($this->sqlitePath, $filePath)) {
                 throw new Exception(sprintf(
                     'Could not back up store: "%s" => "%s".',
-                    $this->databaseFilePath,
+                    $this->sqlitePath,
                     $filePath
                 ));
             }
@@ -172,7 +200,7 @@ final class Store
      */
     public function set(string $key, string $value): self
     {
-        $this->lock(function () use ($key, $value): void {
+        $this->sync(function () use ($key, $value): void {
             try {
                 $this->execute(
                     self::SQL_SET_KEY,
@@ -198,7 +226,7 @@ final class Store
      */
     public function remove(string $key): self
     {
-        $this->lock(function () use ($key): void {
+        $this->sync(function () use ($key): void {
             try {
                 $this->execute(self::SQL_DELETE_KEY, [':key' => $key]);
             } catch (PDOException $e) {
@@ -320,7 +348,7 @@ final class Store
      */
     private function makeTable(): void
     {
-        $this->bindAndExecuteStatement(self::SQL_MAKE_TABLE);
+        $this->bindAndExecuteStatement(self::SQL_TABLE_MAKE);
     }
 
     /**
@@ -368,11 +396,7 @@ final class Store
         if (false === $formatted) {
             $wasCreated = true;
 
-            $directoryPath = dirname($absoluteFilePath);
-            $fileName = basename($absoluteFilePath);
-
-            @mkdir($directoryPath);
-            @touch($directoryPath . '/' . $fileName);
+            $this->makeEmptyFile($absoluteFilePath);
 
             $formatted = @realpath($absoluteFilePath);
 
@@ -392,21 +416,23 @@ final class Store
     private function assertPathLength(string $path): void
     {
         if (strlen($path) > PHP_MAXPATHLEN) {
-            throw new Exception('Path exceed maximum path length');
+            throw new Exception(sprintf(
+                'Path exceeds maximum path length: "%s".',
+                $path
+            ));
         }
     }
 
-    private function lock(callable $func)
+    /**
+     * Runs a callable as a synchronous operation across all processes/threads.
+     *
+     * @param callable $func the callable to execute.
+     * @return mixed the result of the callable.
+     * @throws Exception if the mutex could not be obtained/released properly.
+     */
+    private function sync(callable $func): mixed
     {
-        $fp = @fopen($this->lockFilePath, 'a');
-
-        if (false === $fp) {
-            throw new Exception('Could not open obtain lock file.');
-        }
-
-        if (false === @flock($fp, LOCK_EX)) {
-            throw new Exception('Could not obtain exclusive lock on lock file.');
-        }
+        $fp = $this->lock();
 
         try {
             $result = call_user_func($func);
@@ -422,7 +448,37 @@ final class Store
     }
 
     /**
-     * @param resource $fp
+     * Opens and obtains an exclusive lock on the mutex file.
+     *     If the lock file does not yet exist then it will be created.
+     *
+     * @return resource the mutex file pointer.
+     * @throws Exception if the lock file could not be created, opened,
+     *     or if an exclusive lock could not be obtained.
+     */
+    private function lock()
+    {
+        if (!file_exists($this->mutexPath)) {
+            $this->makeEmptyFile($this->mutexPath);
+        }
+
+        $fp = @fopen($this->mutexPath, 'r');
+
+        if (false === $fp) {
+            throw new Exception('Could not open lock file.');
+        }
+
+        if (false === @flock($fp, LOCK_EX)) {
+            throw new Exception('Could not obtain exclusive lock on lock file.');
+        }
+
+        return $fp;
+    }
+
+    /**
+     * Unlocks and closes the mutex file.
+     *
+     * @param resource $fp the file pointer.
+     * @throws Exception if the file could not be unlocked or properly closed.
      */
     private function unlock($fp): void
     {
@@ -432,6 +488,34 @@ final class Store
 
         if (false === @fclose($fp)) {
             throw new Exception('Could not close lock file');
+        }
+    }
+
+    /**
+     * Creates an empty file at the specified path.
+     *
+     * @param string $absoluteFilePath the absolute path to the file to be created.
+     * @throws Exception if the file could not be properly created.
+     */
+    private function makeEmptyFile(string $absoluteFilePath): void
+    {
+        $directoryPath = dirname($absoluteFilePath);
+        @mkdir($directoryPath, 0755, true);
+
+        @touch($absoluteFilePath);
+
+        if (!file_exists($absoluteFilePath)) {
+            throw new Exception(sprintf(
+                'File could not be created: %s.',
+                $absoluteFilePath
+            ));
+        }
+
+        if (!chmod($absoluteFilePath, 0644)) {
+            throw new Exception(sprintf(
+                'Could not set file permissions: %s.',
+                $absoluteFilePath
+            ));
         }
     }
 }
