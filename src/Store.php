@@ -247,6 +247,19 @@ final class Store
         return $this;
     }
 
+    /**
+     * Search the keys and values for a specified term.
+     *
+     * todo: wildcard character validation including restricting it to 1 character.
+     *
+     * @param string $key the key to search for.
+     * @param string $value the value to look for.
+     * @param string $wildcard the wildcard character to use in the key and
+     *     value. This can appear before the string, after the string, or
+     *     anywhere in the middle of the string. It defaults to *.
+     * @return array the key-value pairs that matched the search criteria.
+     * @throws Exception if there was a problem searching the store.
+     */
     public function search(string $key, string $value, string $wildcard = '*')
     {
         $key = $this->prepareSearch($key, $wildcard);
@@ -263,6 +276,18 @@ final class Store
         return $this->formatSearch($rows);
     }
 
+    /**
+     * Search the keys for a specified term.
+     *
+     * todo: wildcard character validation including restricting it to 1 character.
+     *
+     * @param string $key the key to search for.
+     * @param string $wildcard the wildcard character to use in the key.
+     *     This can appear before the string, after the string, or
+     *     anywhere in the middle of the string. It defaults to *.
+     * @return array the key-value pairs that matched the search criteria.
+     * @throws Exception if there was a problem searching the store.
+     */
     public function searchKey(string $key, string $wildcard = '*'): array
     {
         $key = $this->prepareSearch($key, $wildcard);
@@ -278,6 +303,18 @@ final class Store
         return $this->formatSearch($rows);
     }
 
+    /**
+     * Search the values for a specified term.
+     *
+     * todo: wildcard character validation including restricting it to 1 character.
+     *
+     * @param string $value the value to search for.
+     * @param string $wildcard the wildcard character to use in the value.
+     *     This can appear before the string, after the string, or
+     *     anywhere in the middle of the string. It defaults to *.
+     * @return array the key-value pairs that matched the search criteria.
+     * @throws Exception if there was a problem searching the store.
+     */
     public function searchValue(string $value, string $wildcard = '*'): array
     {
         $value = $this->prepareSearch($value, $wildcard);
@@ -293,7 +330,15 @@ final class Store
         return $this->formatSearch($rows);
     }
 
-    private function prepareSearch(string $str, $wildcard): string
+    /**
+     * Takes a string, and a wildcard character.
+     *     Returns a string to be utilised in an SQLite LIKE clause.
+     *
+     * @param string $str the string to be searched for.
+     * @param string $wildcard the wildcard characters.
+     * @return string the formatted SQLite search term.
+     */
+    private function prepareSearch(string $str, string $wildcard): string
     {
         if ($wildcard === '%') {
             return $str;
@@ -305,6 +350,12 @@ final class Store
         ]);
     }
 
+    /**
+     * Formats rows returned by a search query as a key-value array.
+     *
+     * @param array $rows array of associative arrays indicating query results.
+     * @return array the query results as a key-value array.
+     */
     private function formatSearch(array $rows): array
     {
         return array_reduce($rows, function (array $rows, array $row): array {
