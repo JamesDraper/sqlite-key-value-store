@@ -212,13 +212,10 @@ final class Store
     {
         $this->sync(function () use ($key, $value): void {
             try {
-                $this->execute(
-                    self::SQL_SET_KEY,
-                    [
-                        ':value' => $value,
-                        ':key' => $key,
-                    ]
-                );
+                $this->execute(self::SQL_SET_KEY, [
+                    ':value' => $value,
+                    ':key' => $key,
+                ]);
             } catch (PDOException $e) {
                 throw new Exception('Store could not be written to.', $e);
             }
