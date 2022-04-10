@@ -159,6 +159,12 @@ final class Store
         return $this;
     }
 
+    /**
+     * Return the store size.
+     *
+     * @return int the number of key-value pairs in the collection.
+     * @throws Exception if there was a problem interacting with the sqlite database.
+     */
     public function getSize(): int
     {
         try {
