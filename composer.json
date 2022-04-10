@@ -9,6 +9,7 @@
         }
     },
     "autoload-dev": {
+        "files": ["src/format_path.php"],
         "psr-4": {
             "Test\\": "test"
         }

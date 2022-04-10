@@ -90,6 +90,8 @@ final class Store
         . '   value TEXT '
         . ') WITHOUT ROWID';
 
+    private bool $helperLoaded = false;
+
     private string $sqlitePath;
 
     private string $mutexPath;
@@ -521,17 +523,21 @@ final class Store
      */
     private function loadFormatPathHelper(): void
     {
-        if (!function_exists('\\SqliteKeyValueStore\\format_path')) {
-            $funcPath = @realpath(__DIR__ . '/../format_path.php');
+        if (!$this->helperLoaded) {
+            $this->helperLoaded = true;
 
-            try {
-                if (false === $funcPath) {
-                    throw new RuntimeException;
+            if (!function_exists('\\SqliteKeyValueStore\\format_path')) {
+                $funcPath = @realpath(__DIR__ . '/../format_path.php');
+
+                try {
+                    if (false === $funcPath) {
+                        throw new RuntimeException;
+                    }
+
+                    require_once $funcPath;
+                } catch (Throwable $e) {
+                    throw new Exception('Could not load format_path helper.');
                 }
-
-                require_once $funcPath;
-            } catch (Throwable $e) {
-                throw new Exception('Could not load format_path helper.');
             }
         }
     }
