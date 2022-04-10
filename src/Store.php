@@ -7,24 +7,25 @@ use PDOException;
 use PDOStatement;
 use PDO;
 
-use RuntimeException;
 use Throwable;
 
-use function function_exists;
 use function call_user_func;
 use function array_reduce;
 use function array_merge;
 use function file_exists;
+use function preg_split;
+use function array_pop;
 use function realpath;
 use function dirname;
+use function implode;
 use function sprintf;
 use function fclose;
 use function strlen;
+use function touch;
 use function chmod;
 use function flock;
 use function fopen;
 use function mkdir;
-use function touch;
 use function copy;
 use function trim;
 
@@ -89,8 +90,6 @@ final class Store
         . '    key TEXT PRIMARY KEY, '
         . '   value TEXT '
         . ') WITHOUT ROWID';
-
-    private bool $helperLoaded = false;
 
     private string $sqlitePath;
 
@@ -496,9 +495,7 @@ final class Store
         $formatted = @realpath($absoluteFilePath);
 
         if (false === $formatted) {
-            $this->loadFormatPathHelper();
-
-            $formatted = format_path($absoluteFilePath);
+            $formatted = $this->formatPath($absoluteFilePath);
         }
 
         $this->assertPathLength($formatted);
@@ -507,39 +504,43 @@ final class Store
     }
 
     /**
-     * Attempts to load the format_path helper if it does not exist.
+     * Cleans up a path, standardizing directory separators, removing ".." etc.
      *
-     * This method is potentially overkill. The formatted path to the
-     * file containing the format_path helper function is shorter than this
-     * path. The unformatted path is not. So if this file is at the limits of
-     * PHP_MAXPATHLEN, then the formatted path for the helper function should
-     * still be importable.
+     * This function should behave as much like the native PHP function realpath()
+     * as possible but without checking that the file actually exists. It has been
+     * placed into it's own file so that it can be independently tested.
      *
-     * Because of this, this method formats the path to the file containing
-     * format_path helper function, and loads it. If the function is already
-     * defined then it does nothing.
-     *
-     * @throws Exception if the helper function file could not be loaded.
+     * @param string $path the path to format.
+     * @return string the formatted path.
+     * @throws Exception If the provided path is invalid and cannot be formatted.
      */
-    private function loadFormatPathHelper(): void
+    private function formatPath(string $path): string
     {
-        if (!$this->helperLoaded) {
-            $this->helperLoaded = true;
+        $segments = preg_split('~[/\\\\]~', $path);
 
-            if (!function_exists('\\SqliteKeyValueStore\\format_path')) {
-                $funcPath = @realpath(__DIR__ . '/../format_path.php');
+        $segments = array_reduce($segments, function (array $segments, string $segment) use ($path): array {
+            switch ($segment) {
+                case '.':
+                case '':
+                    break;
 
-                try {
-                    if (false === $funcPath) {
-                        throw new RuntimeException;
+                case '..':
+                    if (empty($segments)) {
+                        throw new Exception(sprintf('Invalid file path: %s.', $path));
                     }
 
-                    require_once $funcPath;
-                } catch (Throwable $e) {
-                    throw new Exception('Could not load format_path helper.');
-                }
+                    array_pop($segments);
+
+                    break;
+
+                default:
+                    $segments[] = $segment;
             }
-        }
+
+            return $segments;
+        }, []);
+
+        return implode('/', $segments);
     }
 
     /**

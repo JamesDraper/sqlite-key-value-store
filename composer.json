@@ -5,11 +5,10 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "SqliteKeyValueStore\\": "src/classes"
+            "SqliteKeyValueStore\\": "src"
         }
     },
     "autoload-dev": {
-        "files": ["src/format_path.php"],
         "psr-4": {
             "Test\\": "test"
         }
