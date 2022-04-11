@@ -426,9 +426,11 @@ final class Store
 
         foreach ($params as $key => $value) {
             if (false === $statement->bindValue($key, $value)) {
-                throw new PDOException(
-                    sprintf('Could not bind value to SQL: %s => %s', $key, $sql)
-                );
+                throw new PDOException(sprintf(
+                    'Could not bind value to SQL: %s => %s',
+                    $key,
+                    $sql
+                ));
             }
         }
 
