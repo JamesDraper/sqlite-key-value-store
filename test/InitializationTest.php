@@ -46,4 +46,14 @@ class InitializationTest extends TestCase
 
         new Store($path);
     }
+
+    /**
+     * @test
+     */
+    public function it_should_fail_if_the_path_is_a_directory(): void
+    {
+        $this->assertExceptionThrown('Path is not a file');
+
+        new Store(static::TEMP_DIR);
+    }
 }

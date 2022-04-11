@@ -13,6 +13,7 @@ use function call_user_func;
 use function array_reduce;
 use function array_merge;
 use function file_exists;
+use function is_file;
 use function preg_split;
 use function array_pop;
 use function realpath;
@@ -107,7 +108,18 @@ final class Store
      */
     public function __construct(string $absoluteFilePath, ?string $lockFilePath = null)
     {
-        $this->sqlitePath = $this->parseAbsoluteFilePath($absoluteFilePath);
+        $this->sqlitePath = $this->parseAbsolutePath($absoluteFilePath);
+
+        if (!is_file($this->sqlitePath)) {
+            if (file_exists($absoluteFilePath)) {
+                throw new Exception(sprintf(
+                    'Path is not a file: %s',
+                    $absoluteFilePath
+                ));
+            }
+
+            $this->makeEmptyFile($absoluteFilePath);
+        }
 
         if (!file_exists($this->sqlitePath)) {
             $this->makeEmptyFile($absoluteFilePath);
@@ -117,7 +129,7 @@ final class Store
             $this->mutexPath = $this->sqlitePath . '.mutex';
             $this->assertPathLength($this->mutexPath);
         } else {
-            $this->mutexPath = $this->parseAbsoluteFilePath($lockFilePath);
+            $this->mutexPath = $this->parseAbsolutePath($lockFilePath);
         }
 
         try {
@@ -136,7 +148,7 @@ final class Store
      */
     public function backup(string $absoluteFilePath): self
     {
-        $filePath = $this->parseAbsoluteFilePath($absoluteFilePath);
+        $filePath = $this->parseAbsolutePath($absoluteFilePath);
 
         if ($this->sqlitePath === $filePath) {
             throw new Exception('Backup file path and store file path cannot match.');
@@ -542,7 +554,7 @@ final class Store
      * @return string the formatted path.
      * @throws Exception if the provided path is invalid or cannot be formatted.
      */
-    private function parseAbsoluteFilePath(string $absoluteFilePath): string
+    private function parseAbsolutePath(string $absoluteFilePath): string
     {
         if (':memory:' === trim($absoluteFilePath)) {
             throw new Exception('Sqlite store cannot be in memory.');
