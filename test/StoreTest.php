@@ -7,7 +7,6 @@ use SqliteKeyValueStore\Exception;
 use SqliteKeyValueStore\Store;
 
 use function str_repeat;
-use function unlink;
 use function touch;
 use function copy;
 
@@ -377,9 +376,6 @@ class StoreTest extends TestCase
     {
         parent::setUp();
 
-        @unlink(static::ALREADY_EXISTS_PATH);
-        @unlink(static::TEST_DB_PATH);
-
         copy(static::SEED_DB_PATH, static::TEST_DB_PATH);
 
         $this->store = new Store(static::TEST_DB_PATH);
@@ -390,8 +386,5 @@ class StoreTest extends TestCase
         unset($this->store);
 
         parent::tearDown();
-
-        @unlink(static::BACKUP_DB_PATH);
-        @unlink(static::TEST_DB_PATH);
     }
 }
