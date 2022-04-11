@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Test;
 
 use SqliteKeyValueStore\Exception;
-use SqliteKeyValueStore\Store;
 
 use function str_repeat;
 use function touch;
@@ -15,12 +14,6 @@ class StoreTest extends TestCase
     private const ALREADY_EXISTS_PATH = self::TEMP_DIR . 'already.exists.txt';
 
     private const BACKUP_DB_PATH = self::TEMP_DIR . 'backup.sqlite';
-
-    private const TEST_DB_PATH = self::TEMP_DIR . 'test.sqlite';
-
-    private const SEED_DB_PATH = __DIR__ . '/seed.sqlite';
-
-    private Store $store;
 
     /**
      * @test
@@ -56,36 +49,6 @@ class StoreTest extends TestCase
         $this->store->backup(static::ALREADY_EXISTS_PATH);
     }
 
-    /**
-     * @test
-     */
-    public function get_returns_null_if_key_does_not_exist(): void
-    {
-        $result = $this->store->get('KEY 4');
-
-        $this->assertNull($result);
-    }
-
-    /**
-     * @test
-     */
-    public function get_returns_default_if_key_does_not_exist(): void
-    {
-        $result = $this->store->get('KEY 4', 'VALUE 4');
-
-        $this->assertSame('VALUE 4', $result);
-    }
-
-    /**
-     * @test
-     */
-    public function get_returns_value(): void
-    {
-        $result = $this->store->get('KEY 1');
-
-        $this->assertSame('VALUE 1', $result);
-    }
-
     public function set_returns_self_for_method_chaining(): void
     {
         $result = $this->store->set('KEY 4', 'VALUE 4');
@@ -95,9 +58,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function set_adds_values(): void
     {
@@ -110,9 +71,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function set_adds_multiple_values(): void
     {
@@ -131,9 +90,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function set_updates_values(): void
     {
@@ -150,9 +107,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function set_updates_multiple_values(): void
     {
@@ -171,9 +126,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function set_stores_long_values(): void
     {
@@ -198,9 +151,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function remove_deletes_values(): void
     {
@@ -217,9 +168,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function remove_deletes_multiple_values(): void
     {
@@ -238,9 +187,7 @@ class StoreTest extends TestCase
 
     /**
      * @test
-     * @depends get_returns_null_if_key_does_not_exist
-     * @depends get_returns_default_if_key_does_not_exist
-     * @depends get_returns_value
+     * @depends Test\GetTest::class
      */
     public function remove_does_nothing_if_value_not_set(): void
     {
@@ -370,21 +317,5 @@ class StoreTest extends TestCase
         $result = $this->store->search('%3%', '%3%', '%');
 
         $this->assertSame(['KEY 3' => 'VALUE 3'], $result);
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        copy(static::SEED_DB_PATH, static::TEST_DB_PATH);
-
-        $this->store = new Store(static::TEST_DB_PATH);
-    }
-
-    protected function tearDown(): void
-    {
-        unset($this->store);
-
-        parent::tearDown();
     }
 }
