@@ -6,8 +6,6 @@ namespace Test;
 use SqliteKeyValueStore\Exception;
 use SqliteKeyValueStore\Store;
 
-use PHPUnit\Framework\TestCase;
-
 use function str_repeat;
 use function unlink;
 use function touch;
