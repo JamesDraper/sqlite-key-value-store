@@ -13,13 +13,13 @@ use function copy;
 
 class StoreTest extends TestCase
 {
-    private const ALREADY_EXISTS_PATH = __DIR__ . '/already.exists.txt';
+    private const ALREADY_EXISTS_PATH = self::TEMP_DIR . 'already.exists.txt';
 
-    private const BACKUP_DB_PATH = __DIR__ . '/backup.sqlite';
+    private const BACKUP_DB_PATH = self::TEMP_DIR . 'backup.sqlite';
+
+    private const TEST_DB_PATH = self::TEMP_DIR . 'test.sqlite';
 
     private const SEED_DB_PATH = __DIR__ . '/seed.sqlite';
-
-    private const TEST_DB_PATH = __DIR__ . '/test.sqlite';
 
     private Store $store;
 
@@ -382,14 +382,14 @@ class StoreTest extends TestCase
 
         copy(static::SEED_DB_PATH, static::TEST_DB_PATH);
 
-        $this->store = new Store(__DIR__ . '/test.sqlite');
+        $this->store = new Store(static::TEST_DB_PATH);
     }
 
     protected function tearDown(): void
     {
-        parent::tearDown();
-
         unset($this->store);
+
+        parent::tearDown();
 
         @unlink(static::BACKUP_DB_PATH);
         @unlink(static::TEST_DB_PATH);

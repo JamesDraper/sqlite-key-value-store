@@ -2,10 +2,6 @@
 
 vendor/*
 
-test/already.exists.txt
-test/test.sqlite.mutex
-test/backup.sqlite
-test/test.sqlite
 composer.lock
 composer.phar
 phpunit.xml
