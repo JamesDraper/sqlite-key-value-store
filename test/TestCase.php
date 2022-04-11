@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Test;
 
+use SqliteKeyValueStore\Exception;
+
 use function in_array;
 use function is_file;
 use function scandir;
@@ -14,6 +16,12 @@ use function rmdir;
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected const TEMP_DIR = __DIR__ . '/temp/';
+
+    protected function assertExceptionThrown(string $message): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage($message);
+    }
 
     protected function setUp(): void
     {
