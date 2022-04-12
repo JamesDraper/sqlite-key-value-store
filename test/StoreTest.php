@@ -52,33 +52,6 @@ class StoreTest extends TestCase
     /**
      * @test
      */
-    public function it_should_get_size(): void
-    {
-        $result = $this->store->getSize();
-
-        $this->assertSame(3, $result);
-    }
-
-    /**
-     * @test
-     * @depends remove_deletes_values
-     * @depends remove_deletes_multiple_values
-     * @depends remove_does_nothing_if_value_not_set
-     */
-    public function it_should_get_size_if_size_is_0(): void
-    {
-        $this->store->remove('KEY 1');
-        $this->store->remove('KEY 2');
-        $this->store->remove('KEY 3');
-
-        $result = $this->store->getSize();
-
-        $this->assertSame(0, $result);
-    }
-
-    /**
-     * @test
-     */
     public function it_should_search_keys(): void
     {
         $result = $this->store->searchKey('*3*');
