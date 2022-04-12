@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
-class SearchValueTest extends TestCase
+class SearchValueTests extends TestCase
 {
     /**
      * @test

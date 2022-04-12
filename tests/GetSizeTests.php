@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
-class GetSizeTest extends TestCase
+class GetSizeTests extends TestCase
 {
     /**
      * @test
@@ -17,7 +17,7 @@ class GetSizeTest extends TestCase
 
     /**
      * @test
-     * @depends Test\RemoveTest::class
+     * @depends Tests\RemoveTests::class
      */
     public function it_should_get_size_if_size_is_0(): void
     {

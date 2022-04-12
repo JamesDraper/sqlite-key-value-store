@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
 use SqliteKeyValueStore\Exception;
 use SqliteKeyValueStore\Store;

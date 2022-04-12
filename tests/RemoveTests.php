@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
-class RemoveTest extends TestCase
+class RemoveTests extends TestCase
 {
     /**
      * @test
@@ -17,7 +17,7 @@ class RemoveTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_removes_values(): void
     {
@@ -34,7 +34,7 @@ class RemoveTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_removes_multiple_values(): void
     {
@@ -53,7 +53,7 @@ class RemoveTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_does_nothing_if_value_not_set(): void
     {

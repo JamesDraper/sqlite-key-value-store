@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
 use SqliteKeyValueStore\Store;
 
@@ -11,7 +11,7 @@ use function implode;
 
 use const PHP_MAXPATHLEN;
 
-class InitializationTest extends TestCase
+class InitializationTests extends TestCase
 {
     /**
      * @test

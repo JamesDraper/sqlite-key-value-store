@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
 use SqliteKeyValueStore\Exception;
 
 use function touch;
 
-class BackupTest extends TestCase
+class BackupTests extends TestCase
 {
     private const ALREADY_EXISTS_PATH = self::TEMP_DIR . 'already.exists.txt';
 

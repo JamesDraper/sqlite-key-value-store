@@ -10,7 +10,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Test\\": "test"
+            "Tests\\": "tests"
         }
     },
     "require": {
@@ -27,6 +27,6 @@
         "phpunit": "phpunit",
         "phpcs": ["@phpcs.src", "@phpcs.test"],
         "phpcs.src": "phpcs src --standard=phpcs.src.xml",
-        "phpcs.test": "phpcs test --standard=phpcs.test.xml"
+        "phpcs.test": "phpcs tests --standard=phpcs.tests.xml"
     }
 }

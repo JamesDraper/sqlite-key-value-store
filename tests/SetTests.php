@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Test;
+namespace Tests;
 
 use function str_repeat;
 
-class SetTest extends TestCase
+class SetTests extends TestCase
 {
     /**
      * @test
@@ -19,7 +19,7 @@ class SetTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_adds_values(): void
     {
@@ -32,7 +32,7 @@ class SetTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_adds_multiple_values(): void
     {
@@ -51,7 +51,7 @@ class SetTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_updates_values(): void
     {
@@ -68,7 +68,7 @@ class SetTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_updates_multiple_values(): void
     {
@@ -87,7 +87,7 @@ class SetTest extends TestCase
 
     /**
      * @test
-     * @depends Test\GetTest::class
+     * @depends Tests\GetTests::class
      */
     public function it_stores_long_values(): void
     {
