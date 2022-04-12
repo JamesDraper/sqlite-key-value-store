@@ -21,9 +21,9 @@ class GetSizeTests extends TestCase
      */
     public function it_should_get_size_if_size_is_0(): void
     {
-        $this->store->remove('KEY 1');
-        $this->store->remove('KEY 2');
-        $this->store->remove('KEY 3');
+        $this->store->remove('KEY%1');
+        $this->store->remove('KEY%2');
+        $this->store->remove('KEY%3');
 
         $result = $this->store->getSize();
 

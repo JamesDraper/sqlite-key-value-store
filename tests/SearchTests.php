@@ -12,7 +12,7 @@ class SearchTests extends TestCase
     {
         $result = $this->store->search('*3*', '*3*');
 
-        $this->assertSame(['KEY 3' => 'VALUE 3'], $result);
+        $this->assertSame(['KEY%3' => 'VALUE%3'], $result);
     }
 
     /**
@@ -22,7 +22,7 @@ class SearchTests extends TestCase
     {
         $result = $this->store->search('_3_', '_3_', '_');
 
-        $this->assertSame(['KEY 3' => 'VALUE 3'], $result);
+        $this->assertSame(['KEY%3' => 'VALUE%3'], $result);
     }
 
     /**
@@ -32,6 +32,6 @@ class SearchTests extends TestCase
     {
         $result = $this->store->search('%3%', '%3%', '%');
 
-        $this->assertSame(['KEY 3' => 'VALUE 3'], $result);
+        $this->assertSame(['KEY%3' => 'VALUE%3'], $result);
     }
 }
