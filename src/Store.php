@@ -340,6 +340,26 @@ final class Store
     }
 
     /**
+     * Returns the path to the mutex file used when writing to the store.
+     *
+     * @return string
+     */
+    public function getMutexFilePath(): string
+    {
+        return $this->mutexPath;
+    }
+
+    /**
+     * Returns the file path to the sqlite store file.
+     *
+     * @return string
+     */
+    public function getFilePath(): string
+    {
+        return $this->sqlitePath;
+    }
+
+    /**
      * Takes a string, and a wildcard character.
      *     Returns a string to be utilised in an SQLite LIKE clause.
      *
