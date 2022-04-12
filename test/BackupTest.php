@@ -5,11 +5,9 @@ namespace Test;
 
 use SqliteKeyValueStore\Exception;
 
-use function str_repeat;
 use function touch;
-use function copy;
 
-class StoreTest extends TestCase
+class BackupTest extends TestCase
 {
     private const ALREADY_EXISTS_PATH = self::TEMP_DIR . 'already.exists.txt';
 
@@ -18,7 +16,7 @@ class StoreTest extends TestCase
     /**
      * @test
      */
-    public function backup_copies_sqlite_file_to_another_file(): void
+    public function it_copies_sqlite_file_to_another_file(): void
     {
         $this->store->backup(static::BACKUP_DB_PATH);
 
@@ -28,7 +26,7 @@ class StoreTest extends TestCase
     /**
      * @test
      */
-    public function backup_fails_if_destination_and_src_are_same(): void
+    public function it_fails_if_destination_and_src_are_same(): void
     {
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Backup file path and store file path cannot match.');
@@ -39,7 +37,7 @@ class StoreTest extends TestCase
     /**
      * @test
      */
-    public function backup_fails_if_destination_already_exists(): void
+    public function it_fails_if_destination_already_exists(): void
     {
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Backup file path must be empty.');
