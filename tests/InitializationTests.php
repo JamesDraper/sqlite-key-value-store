@@ -20,7 +20,7 @@ class InitializationTests extends TestCase
     {
         $this->assertExceptionThrown('Sqlite store cannot be in memory.');
 
-        new Store(':memory:');
+        Store::make(':memory:');
     }
 
     /**
@@ -32,7 +32,7 @@ class InitializationTests extends TestCase
 
         $path = implode('/', array_fill(0, 1000, '..'));
 
-        new Store($path);
+        Store::make($path);
     }
 
     /**
@@ -44,7 +44,7 @@ class InitializationTests extends TestCase
 
         $path = str_repeat('a', PHP_MAXPATHLEN + 1);
 
-        new Store($path);
+        Store::make($path);
     }
 
     /**
@@ -54,6 +54,6 @@ class InitializationTests extends TestCase
     {
         $this->assertExceptionThrown('Path is not a file');
 
-        new Store(static::TEMP_DIR);
+        Store::make(static::TEMP_DIR);
     }
 }

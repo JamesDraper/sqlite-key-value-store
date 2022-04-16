@@ -39,7 +39,7 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
 
         copy(static::SEED_DB_PATH, static::TEST_DB_PATH);
 
-        $this->store = new Store(static::TEST_DB_PATH);
+        $this->store = Store::make(static::TEST_DB_PATH);
     }
 
     protected function tearDown(): void

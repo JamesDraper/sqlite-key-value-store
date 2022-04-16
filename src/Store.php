@@ -99,6 +99,16 @@ final class Store
     private PDO $pdo;
 
     /**
+     * @throws Exception if the sqlite database connection could not be established,
+     *     if the sqlite file does not exist and could not be created,
+     *     or if the file path is ":memory:".
+     */
+    public static function make(string $absoluteFilePath, ?string $lockFilePath = null): self
+    {
+        return new self($absoluteFilePath, $lockFilePath);
+    }
+
+    /**
      * @param string $absoluteFilePath the absolute path to the sqlite file.
      *     If it does not exist it will be created.
      *
