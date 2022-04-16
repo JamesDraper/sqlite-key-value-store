@@ -46,21 +46,18 @@ final class Store
     private const SQL_SEARCH = ''
         . 'SELECT * '
         . 'FROM store '
-        . 'WHERE key LIKE :key '
-        . '    AND value LIKE :value '
-        . 'ESCAPE "^"';
+        . 'WHERE key LIKE :key ESCAPE "^"'
+        . '    AND value LIKE :value ESCAPE "^"';
 
     private const SQL_SEARCH_KEY = ''
         . 'SELECT * '
         . 'FROM store '
-        . 'WHERE key LIKE :key '
-        . 'ESCAPE "^"';
+        . 'WHERE key LIKE :key ESCAPE "^"';
 
     private const SQL_SEARCH_VALUE = ''
         . 'SELECT * '
         . 'FROM store '
-        . 'WHERE value LIKE :value '
-        . 'ESCAPE "^"';
+        . 'WHERE value LIKE :value ESCAPE "^"';
 
     private const SQL_COUNT = ''
         . 'SELECT COUNT(*) AS count '

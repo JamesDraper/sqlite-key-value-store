@@ -34,4 +34,14 @@ class SearchTests extends TestCase
 
         $this->assertSame(['KEY%3' => 'VALUE%3'], $result);
     }
+
+    /**
+     * @test
+     */
+    public function it_should_search_keys_while_escaping_standard_sqlite_wildcard(): void
+    {
+        $result = $this->store->search('*%3*', '*%3*');
+
+        $this->assertSame(['KEY%3' => 'VALUE%3'], $result);
+    }
 }
