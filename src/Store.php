@@ -376,16 +376,19 @@ final class Store
      * @param string $str the string to be searched for.
      * @param string $wildcard the wildcard characters.
      * @return string the formatted SQLite search term.
+     * @throws Exception if $wildcard is not exactly 1 character in length.
      */
     private function prepareSearch(string $str, string $wildcard): string
     {
-        if ($wildcard === '%') {
-            return $str;
+        if (strlen($wildcard) !== 1) {
+            throw new Exception('Escape sequence must be exactly 1 character in length.');
         }
 
         return strtr($str, [
-            $wildcard => '%',
             '%' => '^%',
+            '_' => '^_',
+            '^' => '^^',
+            $wildcard => '%',
         ]);
     }
 
