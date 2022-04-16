@@ -47,17 +47,20 @@ final class Store
         . 'SELECT * '
         . 'FROM store '
         . 'WHERE key LIKE :key '
-        . '    AND value LIKE :value';
+        . '    AND value LIKE :value '
+        . 'ESCAPE "^"';
 
     private const SQL_SEARCH_KEY = ''
         . 'SELECT * '
         . 'FROM store '
-        . 'WHERE key LIKE :key';
+        . 'WHERE key LIKE :key '
+        . 'ESCAPE "^"';
 
     private const SQL_SEARCH_VALUE = ''
         . 'SELECT * '
         . 'FROM store '
-        . 'WHERE value LIKE :value';
+        . 'WHERE value LIKE :value '
+        . 'ESCAPE "^"';
 
     private const SQL_COUNT = ''
         . 'SELECT COUNT(*) AS count '
@@ -375,7 +378,7 @@ final class Store
 
         return strtr($str, [
             $wildcard => '%',
-            '%' => '\\%',
+            '%' => '^%',
         ]);
     }
 
