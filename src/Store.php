@@ -272,8 +272,6 @@ final class Store
     /**
      * Search the keys and values for a specified term.
      *
-     * todo: wildcard character validation including restricting it to 1 character.
-     *
      * @param string $key the key to search for.
      * @param string $value the value to look for.
      * @param string $wildcard the wildcard character to use in the key and
@@ -301,8 +299,6 @@ final class Store
     /**
      * Search the keys for a specified term.
      *
-     * todo: wildcard character validation including restricting it to 1 character.
-     *
      * @param string $key the key to search for.
      * @param string $wildcard the wildcard character to use in the key.
      *     This can appear before the string, after the string, or
@@ -327,8 +323,6 @@ final class Store
 
     /**
      * Search the values for a specified term.
-     *
-     * todo: wildcard character validation including restricting it to 1 character.
      *
      * @param string $value the value to search for.
      * @param string $wildcard the wildcard character to use in the value.
