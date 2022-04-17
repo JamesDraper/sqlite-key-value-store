@@ -10,7 +10,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_search_values(): void
     {
-        $result = $this->store->searchValue('*1*');
+        $result = $this->store->searchValues('*1*');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -20,7 +20,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_search_values_with_non_standard_wildcards(): void
     {
-        $result = $this->store->searchValue('#1#', '#');
+        $result = $this->store->searchValues('#1#', '#');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -30,7 +30,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_search_values_with_underscore_wildcards(): void
     {
-        $result = $this->store->searchValue('_1_', '_');
+        $result = $this->store->searchValues('_1_', '_');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -40,7 +40,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_search_values_with_percentage_wildcards(): void
     {
-        $result = $this->store->searchValue('%2%', '%');
+        $result = $this->store->searchValues('%2%', '%');
 
         $this->assertSame(['KEY%2' => 'VALUE%2'], $result);
     }
@@ -50,7 +50,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_search_values_with_escape_symbol(): void
     {
-        $result = $this->store->searchValue('^3^', '^');
+        $result = $this->store->searchValues('^3^', '^');
 
         $this->assertSame(['KEY^3' => 'VALUE^3'], $result);
     }
@@ -60,7 +60,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_escape_underscore(): void
     {
-        $result = $this->store->searchValue('VALUE_1');
+        $result = $this->store->searchValues('VALUE_1');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -70,7 +70,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_escape_percentage(): void
     {
-        $result = $this->store->searchValue('VALUE%2');
+        $result = $this->store->searchValues('VALUE%2');
 
         $this->assertSame(['KEY%2' => 'VALUE%2'], $result);
     }
@@ -80,7 +80,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_escape_escape_symbol(): void
     {
-        $result = $this->store->searchValue('VALUE^3');
+        $result = $this->store->searchValues('VALUE^3');
 
         $this->assertSame(['KEY^3' => 'VALUE^3'], $result);
     }
@@ -92,7 +92,7 @@ class SearchValueTests extends TestCase
     {
         $this->assertExceptionThrown('Escape sequence must be exactly 1 character in length.');
 
-        $this->store->searchValue('VALUE_1', '');
+        $this->store->searchValues('VALUE_1', '');
     }
 
     /**
@@ -102,7 +102,7 @@ class SearchValueTests extends TestCase
     {
         $this->assertExceptionThrown('Escape sequence must be exactly 1 character in length.');
 
-        $this->store->searchValue('VALUE_1', 'ab');
+        $this->store->searchValues('VALUE_1', 'ab');
     }
 
     /**
@@ -110,7 +110,7 @@ class SearchValueTests extends TestCase
      */
     public function it_should_return_multiple_values(): void
     {
-        $result = $this->store->searchValue('VALUE*');
+        $result = $this->store->searchValues('VALUE*');
 
         $expected = [
             'KEY%2' => 'VALUE%2',

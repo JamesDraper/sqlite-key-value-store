@@ -310,7 +310,7 @@ final class Store
      * @return array the key-value pairs that matched the search criteria.
      * @throws Exception if there was a problem searching the store.
      */
-    public function searchKey(string $key, string $wildcard = '*'): array
+    public function searchKeys(string $key, string $wildcard = '*'): array
     {
         $key = $this->prepareSearch($key, $wildcard);
 
@@ -337,7 +337,7 @@ final class Store
      * @return array the key-value pairs that matched the search criteria.
      * @throws Exception if there was a problem searching the store.
      */
-    public function searchValue(string $value, string $wildcard = '*'): array
+    public function searchValues(string $value, string $wildcard = '*'): array
     {
         $value = $this->prepareSearch($value, $wildcard);
 

@@ -10,7 +10,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_search_keys(): void
     {
-        $result = $this->store->searchKey('*1*');
+        $result = $this->store->searchKeys('*1*');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -20,7 +20,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_search_keys_with_non_standard_wildcards(): void
     {
-        $result = $this->store->searchKey('#1#', '#');
+        $result = $this->store->searchKeys('#1#', '#');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -30,7 +30,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_search_keys_with_underscore_wildcards(): void
     {
-        $result = $this->store->searchKey('_1_', '_');
+        $result = $this->store->searchKeys('_1_', '_');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -40,7 +40,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_search_keys_with_percentage_wildcards(): void
     {
-        $result = $this->store->searchKey('%2%', '%');
+        $result = $this->store->searchKeys('%2%', '%');
 
         $this->assertSame(['KEY%2' => 'VALUE%2'], $result);
     }
@@ -50,7 +50,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_search_keys_with_escape_symbol(): void
     {
-        $result = $this->store->searchKey('^3^', '^');
+        $result = $this->store->searchKeys('^3^', '^');
 
         $this->assertSame(['KEY^3' => 'VALUE^3'], $result);
     }
@@ -60,7 +60,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_escape_underscore(): void
     {
-        $result = $this->store->searchKey('KEY_1');
+        $result = $this->store->searchKeys('KEY_1');
 
         $this->assertSame(['KEY_1' => 'VALUE_1'], $result);
     }
@@ -70,7 +70,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_escape_percentage(): void
     {
-        $result = $this->store->searchKey('KEY%2');
+        $result = $this->store->searchKeys('KEY%2');
 
         $this->assertSame(['KEY%2' => 'VALUE%2'], $result);
     }
@@ -80,7 +80,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_escape_escape_symbol(): void
     {
-        $result = $this->store->searchKey('KEY^3');
+        $result = $this->store->searchKeys('KEY^3');
 
         $this->assertSame(['KEY^3' => 'VALUE^3'], $result);
     }
@@ -92,7 +92,7 @@ class SearchKeyTests extends TestCase
     {
         $this->assertExceptionThrown('Escape sequence must be exactly 1 character in length.');
 
-        $this->store->searchKey('KEY_1', '');
+        $this->store->searchKeys('KEY_1', '');
     }
 
     /**
@@ -102,7 +102,7 @@ class SearchKeyTests extends TestCase
     {
         $this->assertExceptionThrown('Escape sequence must be exactly 1 character in length.');
 
-        $this->store->searchKey('KEY_1', 'ab');
+        $this->store->searchKeys('KEY_1', 'ab');
     }
 
     /**
@@ -110,7 +110,7 @@ class SearchKeyTests extends TestCase
      */
     public function it_should_return_multiple_keys(): void
     {
-        $result = $this->store->searchKey('KEY*');
+        $result = $this->store->searchKeys('KEY*');
 
         $expected = [
             'KEY%2' => 'VALUE%2',
