@@ -47,17 +47,20 @@ final class Store
         . 'SELECT * '
         . 'FROM store '
         . 'WHERE key LIKE :key ESCAPE "^"'
-        . '    AND value LIKE :value ESCAPE "^"';
+        . '    AND value LIKE :value ESCAPE "^" '
+        . 'ORDER BY key, value ASC';
 
     private const SQL_SEARCH_KEY = ''
         . 'SELECT * '
         . 'FROM store '
-        . 'WHERE key LIKE :key ESCAPE "^"';
+        . 'WHERE key LIKE :key ESCAPE "^" '
+        . 'ORDER BY key ASC';
 
     private const SQL_SEARCH_VALUE = ''
         . 'SELECT * '
         . 'FROM store '
-        . 'WHERE value LIKE :value ESCAPE "^"';
+        . 'WHERE value LIKE :value ESCAPE "^" '
+        . 'ORDER BY value ASC';
 
     private const SQL_COUNT = ''
         . 'SELECT COUNT(*) AS count '

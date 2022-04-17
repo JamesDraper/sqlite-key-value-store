@@ -104,4 +104,20 @@ class SearchValueTests extends TestCase
 
         $this->store->searchValue('VALUE_1', 'ab');
     }
+
+    /**
+     * @test
+     */
+    public function it_should_return_multiple_values(): void
+    {
+        $result = $this->store->searchValue('VALUE*');
+
+        $expected = [
+            'KEY%2' => 'VALUE%2',
+            'KEY^3' => 'VALUE^3',
+            'KEY_1' => 'VALUE_1',
+        ];
+
+        $this->assertSame($expected, $result);
+    }
 }

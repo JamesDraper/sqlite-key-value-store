@@ -104,4 +104,20 @@ class SearchKeyTests extends TestCase
 
         $this->store->searchKey('KEY_1', 'ab');
     }
+
+    /**
+     * @test
+     */
+    public function it_should_return_multiple_keys(): void
+    {
+        $result = $this->store->searchKey('KEY*');
+
+        $expected = [
+            'KEY%2' => 'VALUE%2',
+            'KEY^3' => 'VALUE^3',
+            'KEY_1' => 'VALUE_1',
+        ];
+
+        $this->assertSame($expected, $result);
+    }
 }
