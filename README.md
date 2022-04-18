@@ -44,3 +44,38 @@ Values can be removed from the store via the `remove` method:
 If the key exists, then it is removed. If it does not exist then nothing happens.
 `\SqliteKeyValueStore\Exception` if there was an issue deleting the key. This
 method returns the instance for method chaining.
+
+## Searching the store
+
+There are 3 ways to search the store:
+
+    // search by keys containing the substring "some_key" where "?" is a wildcard.
+    $matches = $store->searchKeys('?some_key?', '?');
+
+    // search by values containing the substring "some_value" where "?" is a wildcard.
+    $matches = $store->searchValues('?some_value?', '?');
+
+    // search by keys containing the substring "some_key"
+    // AND by values containing the substring "some_value"
+    // where "?" is a wildcard.
+    $matches = $store->search('?some_key?', '?some_value?', '?');
+
+The wildcard is an optional argument that defaults to `*`. If it is not exactly
+1 character then `\SqliteKeyValueStore\Exception` is thrown. Each method returns
+a key-value array of pairs that were matched in the store.
+
+## Backing up the store
+
+The store can be backed up by calling `backup` and specifying a path to backup
+the database to. The path must be empty or `\SqliteKeyValueStore\Exception` is
+thrown. While backing up the database is locked, and all write operations will
+block until the backup is complete.
+
+    $store->backup('backup/path');
+
+## Getting the store size
+
+The size of the store can be determined by calling `getSize` which returns the
+number of key-value pairs in the store as an integer.
+
+    $store->getSize();
